@@ -47,6 +47,16 @@ section{display:grid;gap:12px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
 .btn.danger{color:var(--tur);border-color:var(--tur)}
 .counter .btn{margin-top:10px}
+.ekrow{display:flex;justify-content:space-between;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.ekrow b{color:var(--ink2);font-family:var(--f-display);font-size:1rem}
+.ekrow span:last-child b{color:var(--ink)}
+.ekt{color:var(--ink2);font-weight:600;font-size:.74rem}
+.mode{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-left:auto}
+.mode button{font:inherit;font-size:.78rem;font-weight:600;padding:5px 10px;border:0;background:none;color:var(--muted);cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.mode button[data-v="0"][aria-pressed="true"]{background:var(--ink2)}
+.day.nt{border-color:color-mix(in srgb,var(--ink2) 55%,var(--line))}
+.dcell.nt{border-color:color-mix(in srgb,var(--ink2) 55%,var(--line))}
 .sync{font-size:.74rem;color:var(--muted);margin-top:8px}
 .sync[data-s=ok]{color:var(--ok)}
 .sync[data-s=err]{color:var(--tur)}
@@ -228,13 +238,14 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     <div>
       <div class="lbl">8. sınıf · LGS hazırlık paneli</div>
       <h1>Haftada 270 soru, hedef <b>470+</b></h1>
-      <p>Program yalnızca soru çözümünden oluşuyor. Süreler soru başına dakikadan hesaplandı: Matematik ve Fen 2 dk, Türkçe 1,5 dk, İngilizce, İnkılap ve Din 1 dk. Hafta içi 70 soru 16.00–16.45 içinde, hafta sonu her gün 100 soru molalarla.</p>
+      <p>Program yalnızca soru çözümünden oluşuyor. Süreler soru başına dakikadan hesaplandı: Matematik ve Fen 2 dk, Türkçe 1,5 dk, İngilizce, İnkılap ve Din 1 dk. Antrenman günü 16.00–16.45, antrenman olmayan gün 18.30'dan itibaren 40 soru (fazlası ek soru olarak ayrı sayılır). Hafta sonu her gün 100 soru molalarla.</p>
     </div>
     <div class="counter">
-      <div class="lbl">Bu hafta çözülen</div>
+      <div class="lbl">Temel hedef · bu hafta</div>
       <div class="big num"><span id="done">0</span><small> / 270</small></div>
       <div class="bar"><i id="totalBar"></i></div>
       <div class="sub2 num" id="left">270 soru kaldı</div>
+      <div class="ekrow num"><span>Ek soru <b id="ekc">0</b></span><span>Toplam çözülen <b id="totc">0</b></span></div>
       <button type="button" class="btn" id="reset">Yeni haftaya başla</button>
       <div class="sync" id="sync" data-s="wait">☁ Bağlanıyor…</div>
     </div>
@@ -371,11 +382,17 @@ const SUB={
 // Block: [subject, kind, value, text]. kind "q" → value = questions, duration = q × rate. Others → value = minutes.
 // kinds: q (questions), m (method: tekrar/analiz), r (rest/meal/free)
 const DAYS=[
- {k:"pzt",n:"Pazartesi",s:"16.00",lim:45,b:[["mat","q",10,"Soru çözümü"]]},
- {k:"sal",n:"Salı",s:"16.00",lim:45,b:[["tur","q",15,"Soru çözümü"]]},
- {k:"car",n:"Çarşamba",s:"16.00",lim:45,b:[["mat","q",10,"Soru çözümü"]]},
- {k:"per",n:"Perşembe",s:"16.00",lim:45,b:[["fen","q",15,"Soru çözümü"]]},
- {k:"cum",n:"Cuma",s:"16.00",lim:45,b:[["mat","q",10,"Soru çözümü"],["ing","q",10,"Soru çözümü"]]},
+// nb = antrenman olmayan gün planı (18.00 eve geliş, 18.30 başlangıç). q blokta 5. değer = temel hedefe sayılan kısım, kalanı ek.
+ {k:"pzt",n:"Pazartesi",s:"16.00",lim:45,b:[["mat","q",10,"Soru çözümü"]],
+  nb:[["mat","q",20,"",10],["rest","r",10,"Mola"],["fen","q",10,"",0],["rest","r",10,"Mola"],["tur","q",10,"",0],["mat","m",15,"Yanlış kontrolü: bugünkü yanlışlara bak"]]},
+ {k:"sal",n:"Salı",s:"16.00",lim:45,b:[["tur","q",15,"Soru çözümü"]],
+  nb:[["mat","q",20,"",0],["rest","r",10,"Mola"],["tur","q",15,"",15],["rest","r",10,"Mola"],["ing","q",5,"",0],["mat","m",17.5,"Yanlış kontrolü: bugünkü yanlışlara bak"]]},
+ {k:"car",n:"Çarşamba",s:"16.00",lim:45,b:[["mat","q",10,"Soru çözümü"]],
+  nb:[["mat","q",20,"",10],["rest","r",10,"Mola"],["tur","q",10,"",0],["rest","r",10,"Mola"],["ink","q",10,"",0],["mat","m",15,"Yanlış kontrolü: bugünkü yanlışlara bak"]]},
+ {k:"per",n:"Perşembe",s:"16.00",lim:45,b:[["fen","q",15,"Soru çözümü"]],
+  nb:[["mat","q",20,"",0],["rest","r",10,"Mola"],["fen","q",15,"",15],["rest","r",10,"Mola"],["din","q",5,"",0],["mat","m",15,"Yanlış kontrolü: bugünkü yanlışlara bak"]]},
+ {k:"cum",n:"Cuma",s:"16.00",lim:45,b:[["mat","q",10,"Soru çözümü"],["ing","q",10,"Soru çözümü"]],
+  nb:[["mat","q",20,"",10],["rest","r",10,"Mola"],["ing","q",10,"",10],["rest","r",10,"Mola"],["fen","q",10,"",0],["mat","m",15,"Yanlış kontrolü: bugünkü yanlışlara bak"]]},
  {k:"cmt",n:"Cumartesi",s:"15.00",b:[
   ["mat","q",30,"Soru çözümü"],
   ["rest","r",15,"Mola: su, hareket"],
@@ -404,37 +421,50 @@ const fmt=x=>{const h=Math.floor(x/60),m=Math.floor(x%60),s=Math.round((x%1)*60)
 const dk=x=>`${String(x).replace(".",",")} dk`;
 const chip=s=>`<span class="chip" style="--c:var(${SUB[s].c})">${SUB[s].n}</span>`;
 
-// compute timeline
-DAYS.forEach(d=>{
-  let t=toMin(d.s);
-  d.rows=d.b.map(([s,k,v,txt],i)=>{const dur=k==="q"?v*SUB[s].r:v;const r={s,k,v,txt,dur,st:t,en:t+dur,id:`${d.k}-${i}`};t+=dur;return r});
-  d.end=t; d.q=d.rows.filter(r=>r.k==="q").reduce((a,r)=>a+r.v,0);
-  d.qmin=d.rows.filter(r=>r.k==="q").reduce((a,r)=>a+r.dur,0);
-  d.study=d.rows.filter(r=>r.k!=="r").reduce((a,r)=>a+r.dur,0);
-});
+const noTr=k=>{try{return !!(st.ant&&st.ant.wk===ymdNow()&&st.ant.d&&st.ant.d[k]&&st.ant.d[k].off)}catch(e){return false}};
+function ymdNow(){const d=new Date(),x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`}
+// bir günün o anki planı (antrenman var/yok)
+function plan(d){
+  const nt=!!d.nb&&noTr(d.k),bl=nt?d.nb:d.b,start=nt?"18.30":d.s;let t=toMin(start);
+  const rows=bl.map(([s,k,v,txt,base],i)=>{const dur=k==="q"?v*SUB[s].r:v,b=k==="q"?(nt?(base||0):v):0;
+    const text=k!=="q"?txt:(nt?(b===v?"Soru çözümü (temel)":b===0?"Ek soru çözümü":`${b} temel + ${v-b} ek`):txt);
+    const r={s,k,v,b,x:k==="q"?v-b:0,txt:text,dur,st:t,en:t+dur,id:nt?`${d.k}-n${i}`:`${d.k}-${i}`};t+=dur;return r});
+  const q=rows.filter(r=>r.k==="q");
+  return {nt,rows,start,end:t,q:q.reduce((a,r)=>a+r.v,0),base:q.reduce((a,r)=>a+r.b,0),ek:q.reduce((a,r)=>a+r.x,0),
+    qmin:q.reduce((a,r)=>a+r.dur,0),mola:rows.filter(r=>r.k==="r").reduce((a,r)=>a+r.dur,0),kont:rows.filter(r=>r.k==="m").reduce((a,r)=>a+r.dur,0),
+    study:rows.filter(r=>r.k!=="r").reduce((a,r)=>a+r.dur,0)};
+}
+DAYS.forEach(d=>{const p=plan({...d,nb:null});d.q=p.q});
 
 document.getElementById("legend").innerHTML=["mat","tur","fen","ing","ink","din"].map(s=>chip(s).replace("</span>",` · ${String(SUB[s].r).replace(".",",")} dk/soru</span>`)).join("");
 
 const strip=document.getElementById("strip"),days=document.getElementById("days");
-DAYS.forEach(d=>{
-  const per={};d.rows.forEach(r=>{if(r.k==="q")per[r.s]=(per[r.s]||0)+r.v});
+const trLabel=k=>{const v=(st.ant&&st.ant.wk===ymdNow()&&st.ant.d&&st.ant.d[k])||{};return v.off?"Antrenman yok":(v.s?`Antrenman ${v.s}${v.e?"–"+v.e:""}`:"")};
+function stripHTML(d){const p=plan(d),per={};p.rows.forEach(r=>{if(r.k==="q")per[r.s]=(per[r.s]||0)+r.v});
   const segs=Object.entries(per).map(([s,v])=>`<span style="--c:var(${SUB[s].c});flex:${v}"></span>`).join("");
-  strip.insertAdjacentHTML("beforeend",`<a class="dcell" href="#${d.k}"><span class="dn">${d.n}</span><span class="num"><b>${d.q}</b> soru</span><div class="segs">${segs}</div><span class="meta num">${fmt(toMin(d.s))}–${fmt(d.end)}</span><span class="pr num" data-dp="${d.k}">0/${d.q}</span></a>`);
+  return `<a class="dcell${p.nt?" nt":""}" id="sc-${d.k}" href="#${d.k}"><span class="dn">${d.n}</span><span class="num"><b>${p.q}</b> soru${p.ek?` <small class="ekt">(${p.base} + ${p.ek} ek)</small>`:""}</span><div class="segs">${segs}</div><span class="meta num">${p.nt?"Antrenman yok · ":""}${fmt(toMin(p.start))}–${fmt(p.end)}</span><span class="pr num" data-dp="${d.k}" data-dq="${p.q}">0/${p.q}</span></a>`}
+function dayHTML(d){
+  const p=plan(d),per={},pb={};p.rows.forEach(r=>{if(r.k==="q"){per[r.s]=(per[r.s]||0)+r.v}});
   const calc=Object.entries(per).map(([s,v])=>`${SUB[s].n}: <b>${v} × ${String(SUB[s].r).replace(".",",")} = ${dk(v*SUB[s].r)}</b>`).join("");
-  const lim=d.lim?`<span>Sınır: <b>${d.lim} dk</b> · kullanılan ${dk(d.study)} · boş ${dk(d.lim-d.study)}</span>`:`<span>Soru süresi <b>${dk(d.qmin)}</b> · mola ${dk(d.end-toMin(d.s)-d.qmin)} · toplam ${dk(d.end-toMin(d.s))}</span>`;
-  const rows=d.rows.map(r=>{
+  const lim=p.nt?`<span>Soru <b>${dk(p.qmin)}</b> · mola ${dk(p.mola)} · yanlış kontrolü ${dk(p.kont)} · çalışma ${dk(p.end-toMin(p.start))}</span><span>Temel <b>${p.base}</b> · ek <b>${p.ek}</b> soru</span>`
+    :d.lim?`<span>Sınır: <b>${d.lim} dk</b> · kullanılan ${dk(p.study)} · boş ${dk(d.lim-p.study)}</span>`:`<span>Soru süresi <b>${dk(p.qmin)}</b> · mola ${dk(p.mola)} · toplam ${dk(p.end-toMin(p.start))}</span>`;
+  const rows=p.rows.map(r=>{
     const cls=r.k==="r"?"row rest":r.k==="m"?"row method":"row";
-    const right=r.k==="q"?`<label class="qbox" for="${r.id}"><span class="num">${r.v} soru</span><input type="checkbox" id="${r.id}" data-q="${r.v}" data-s="${r.s}" data-d="${d.k}"></label>`:`<span></span>`;
+    const right=r.k==="q"?`<label class="qbox" for="${r.id}"><span class="num">${r.v} soru${p.nt&&r.x?` <small class="ekt">${r.b?r.x+" ek":"ek"}</small>`:""}</span><input type="checkbox" id="${r.id}" data-q="${r.v}" data-b="${r.b}" data-x="${r.x}" data-s="${r.s}" data-d="${d.k}"></label>`:`<span></span>`;
     const res=r.k==="q"?`<div class="res" data-id="${r.id}" data-q="${r.v}"><label class="k" for="k-${r.id}">Konu<input id="k-${r.id}" data-f="k" placeholder="Çalıştığın konu"></label><label for="d-${r.id}">Doğru<input type="number" inputmode="numeric" min="0" max="${r.v}" id="d-${r.id}" data-f="d"></label><label for="y-${r.id}">Yanlış<input type="number" inputmode="numeric" min="0" max="${r.v}" id="y-${r.id}" data-f="y"></label><span class="out num" id="o-${r.id}"></span></div>`:"";
     return `<div class="${cls}" style="--c:var(${SUB[r.s].c})"><span class="time num"><b>${fmt(r.st)}–${fmt(r.en)}</b> · ${dk(r.dur)}</span><div class="task">${r.s==="rest"?"":chip(r.s)}<span class="d">${r.txt}</span></div>${right}${res}</div>`;
   }).join("");
-  const pre=d.pre?`<div class="row rest" style="--c:var(--rest)"><span class="time">${d.s}'tan önce</span><div class="task"><span class="d">${d.pre}</span></div><span></span></div>`:"";
-  const post=d.post?`<div class="row rest" style="--c:var(--rest)"><span class="time num">${fmt(d.end)} sonrası</span><div class="task"><span class="d">${d.post}</span></div><span></span></div>`:"";
-  days.insertAdjacentHTML("beforeend",`<article class="day" id="${d.k}"><div class="day-h"><h3>${d.n}</h3><span class="sum num"><b>${fmt(toMin(d.s))}–${fmt(d.end)}</b> · <b>${d.q} soru</b></span></div><div class="calc num">${calc}${lim}</div><div class="rows">${pre}${rows}${post}</div></article>`);
-});
+  const pre=p.nt?`<div class="row rest" style="--c:var(--rest)"><span class="time num"><b>18.00–18.30</b> · 30 dk</span><div class="task"><span class="d">Eve geliş, yemek ve dinlenme</span></div><span></span></div>`
+    :d.pre?`<div class="row rest" style="--c:var(--rest)"><span class="time">${d.s}'tan önce</span><div class="task"><span class="d">${d.pre}</span></div><span></span></div>`:"";
+  const post=d.post?`<div class="row rest" style="--c:var(--rest)"><span class="time num">${fmt(p.end)} sonrası</span><div class="task"><span class="d">${d.post}</span></div><span></span></div>`:"";
+  const tog=d.nb?`<div class="mode" role="group" aria-label="${d.n} antrenman"><button type="button" data-tr="${d.k}" data-v="1" aria-pressed="${!p.nt}">🏐 Antrenman var</button><button type="button" data-tr="${d.k}" data-v="0" aria-pressed="${p.nt}">Antrenman yok</button></div>`:"";
+  const tl=trLabel(d.k);
+  return `<article class="day${p.nt?" nt":""}" id="${d.k}"><div class="day-h"><h3>${d.n}</h3>${tl?`<span class="tr num">${esc(tl)}</span>`:""}<span class="sum num"><b>${fmt(toMin(p.start))}–${fmt(p.end)}</b> · <b>${p.q} soru</b></span>${tog}</div><div class="calc num">${calc}${lim}</div><div class="rows">${pre}${rows}${post}</div></article>`;
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-const totals={},tmin={};DAYS.forEach(d=>d.rows.forEach(r=>{if(r.k==="q"){totals[r.s]=(totals[r.s]||0)+r.v;tmin[r.s]=(tmin[r.s]||0)+r.dur}}));
-document.getElementById("subs").innerHTML=Object.entries(totals).map(([s,v])=>`<div class="sub" style="--c:var(${SUB[s].c})"><span class="lbl">${SUB[s].n}</span><span class="n num"><span data-sd="${s}">0</span><small> / ${v}</small></span><div class="bar"><i data-sb="${s}"></i></div><span class="dy num" data-dy="${s}">D 0 · Y 0 · Net 0</span><span class="m num">${v} × ${String(SUB[s].r).replace(".",",")} dk = ${dk(tmin[s])}</span></div>`).join("");
+const totals={},tmin={};DAYS.forEach(d=>plan({...d,nb:null}).rows.forEach(r=>{if(r.k==="q"){totals[r.s]=(totals[r.s]||0)+r.v;tmin[r.s]=(tmin[r.s]||0)+r.dur}}));
+document.getElementById("subs").innerHTML=Object.entries(totals).map(([s,v])=>`<div class="sub" style="--c:var(${SUB[s].c})"><span class="lbl">${SUB[s].n}</span><span class="n num"><span data-sd="${s}">0</span><small> / ${v}</small></span><div class="bar"><i data-sb="${s}"></i></div><span class="dy num" data-se="${s}"></span><span class="dy num" data-dy="${s}">D 0 · Y 0 · Net 0</span><span class="m num">${v} × ${String(SUB[s].r).replace(".",",")} dk = ${dk(tmin[s])}</span></div>`).join("");
 
 // storage
 const KEY="lgs470-v2";
@@ -471,9 +501,15 @@ function setSync(s){const el=document.getElementById("sync");if(!el)return;el.da
 const net=(d,y)=>Math.round((d-y/3)*100)/100;
 const nf=x=>String(Math.round(x*100)/100).replace(".",",");
 
-const boxes=[...document.querySelectorAll('.qbox input')];
-// fill saved per-task results
-document.querySelectorAll(".res").forEach(el=>{const v=st.res[el.dataset.id]||{};el.querySelectorAll("input").forEach(i=>{const x=v[i.dataset.f];i.value=x===undefined||x===null?"":x})});
+const qb=()=>[...document.querySelectorAll('.qbox input')];
+function fillRes(root){root.querySelectorAll(".res").forEach(el=>{const v=st.res[el.dataset.id]||{};el.querySelectorAll("input").forEach(i=>{const x=v[i.dataset.f];i.value=x===undefined||x===null?"":x})})}
+DAYS.forEach(d=>{strip.insertAdjacentHTML("beforeend",stripHTML(d));days.insertAdjacentHTML("beforeend",dayHTML(d))});
+fillRes(days);
+function rebuildDay(k){const d=DAYS.find(x=>x.k===k);if(!d)return;
+  document.getElementById(k).outerHTML=dayHTML(d);document.getElementById("sc-"+k).outerHTML=stripHTML(d);fillRes(document.getElementById(k));render()}
+days.addEventListener("click",e=>{const b=e.target.closest("[data-tr]");if(!b)return;const k=b.dataset.tr,off=b.dataset.v==="0";
+  if(noTr(k)===off)return;antWeek();const v=st.ant.d[k]||(st.ant.d[k]={});v.off=off;save();renderA();rebuildDay(k)});
+days.addEventListener("change",e=>{const b=e.target;if(b.matches(".qbox input")){st.done[b.id]=b.checked;save();render()}});
 document.getElementById("days").addEventListener("input",e=>{
   const i=e.target,el=i.closest(".res");if(!el)return;
   const id=el.dataset.id,v=st.res[id]||(st.res[id]={});
@@ -489,9 +525,9 @@ function weekStats(){
   return {s,D,Y,B:Q-D-Y,Q};
 }
 function render(){
-  let done=0;const sd={},dd={};
-  boxes.forEach(b=>{b.checked=!!st.done[b.id];b.closest(".row").classList.toggle("done",b.checked);
-    if(b.checked){const q=+b.dataset.q;done+=q;sd[b.dataset.s]=(sd[b.dataset.s]||0)+q;dd[b.dataset.d]=(dd[b.dataset.d]||0)+q}});
+  let done=0,ek=0;const sd={},se={},dd={};
+  qb().forEach(b=>{b.checked=!!st.done[b.id];b.closest(".row").classList.toggle("done",b.checked);
+    if(b.checked){const bb=+b.dataset.b,x=+b.dataset.x;done+=bb;ek+=x;sd[b.dataset.s]=(sd[b.dataset.s]||0)+bb;if(x)se[b.dataset.s]=(se[b.dataset.s]||0)+x;dd[b.dataset.d]=(dd[b.dataset.d]||0)+bb+x}});
   document.querySelectorAll(".res").forEach(el=>{const v=st.res[el.dataset.id]||{},q=+el.dataset.q,d=v.d||0,y=v.y||0,o=document.getElementById("o-"+el.dataset.id);
     if(d+y>q){o.className="out num err";o.textContent=`D+Y en fazla ${q}`}
     else if(d+y===0){o.className="out num";o.textContent=`Boş ${q}`}
@@ -502,25 +538,25 @@ function render(){
   document.getElementById("totalBar").style.width=(done/WEEK*100)+"%";
   document.getElementById("left").textContent=done>=WEEK?"Hafta tamamlandı":`${WEEK-done} soru kaldı`;
   Object.keys(totals).forEach(s=>{document.querySelector(`[data-sd="${s}"]`).textContent=sd[s]||0;document.querySelector(`[data-sb="${s}"]`).style.width=((sd[s]||0)/totals[s]*100)+"%"});
-  DAYS.forEach(d=>{document.querySelector(`[data-dp="${d.k}"]`).textContent=`${dd[d.k]||0}/${d.q} ✓`});
+  DAYS.forEach(d=>{const el=document.querySelector(`[data-dp="${d.k}"]`);el.textContent=`${dd[d.k]||0}/${el.dataset.dq} ✓`});
+  Object.keys(totals).forEach(s=>{document.querySelector(`[data-se="${s}"]`).innerHTML=se[s]?`+ <b>${se[s]}</b> ek soru`:""});
+  document.getElementById("ekc").textContent=ek;document.getElementById("totc").textContent=done+ek;
 }
-boxes.forEach(b=>b.addEventListener("change",()=>{st.done[b.id]=b.checked;save();render()}));
 
-// helpers + reset week
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// reset week
 const rb=document.getElementById("reset");let armed=false,tm;
 rb.addEventListener("click",()=>{
   if(!armed){armed=true;rb.textContent="Emin misin? Tekrar dokun";rb.classList.add("danger");tm=setTimeout(()=>{armed=false;rb.textContent="Yeni haftaya başla";rb.classList.remove("danger")},3000);return}
   clearTimeout(tm);armed=false;
-  const w=weekStats(),solved=boxes.filter(b=>st.done[b.id]).reduce((a,b)=>a+ +b.dataset.q,0);
-  if(solved>0||w.Q>0){const m=w.s.mat||{d:0,y:0};st.hist.unshift({t:new Date().toLocaleDateString("tr-TR"),solved,D:w.D,Y:w.Y,B:w.B,mn:net(m.d,m.y)})}
+  const w=weekStats(),cb=qb().filter(b=>st.done[b.id]),solved=cb.reduce((a,b)=>a+ +b.dataset.b,0),ekS=cb.reduce((a,b)=>a+ +b.dataset.x,0);
+  if(solved>0||ekS>0||w.Q>0){const m=w.s.mat||{d:0,y:0};st.hist.unshift({t:new Date().toLocaleDateString("tr-TR"),solved,ek:ekS,D:w.D,Y:w.Y,B:w.B,mn:net(m.d,m.y)})}
   st.done={};st.res={};
   document.querySelectorAll(".res input").forEach(i=>i.value="");
   save();render();renderH();
   rb.classList.remove("danger");rb.textContent="Hafta arşivlendi";setTimeout(()=>rb.textContent="Yeni haftaya başla",1800);
 });
 function renderH(){
-  document.getElementById("hbody").innerHTML=st.hist.map(h=>`<tr><td>${esc(h.t)}</td><td class="n">${h.solved}/${WEEK}</td><td class="n">${h.D}</td><td class="n">${h.Y}</td><td class="n">${h.B}</td><td class="n"><b>${nf(net(h.D,h.Y))}</b></td><td class="n">${nf(h.mn)}</td></tr>`).join("");
+  document.getElementById("hbody").innerHTML=st.hist.map(h=>`<tr><td>${esc(h.t)}</td><td class="n">${h.solved}/${WEEK}${h.ek?` <small>+${h.ek} ek</small>`:""}</td><td class="n">${h.D}</td><td class="n">${h.Y}</td><td class="n">${h.B}</td><td class="n"><b>${nf(net(h.D,h.Y))}</b></td><td class="n">${nf(h.mn)}</td></tr>`).join("");
   document.getElementById("hempty").hidden=st.hist.length>0;
 }
 
@@ -653,7 +689,7 @@ document.getElementById("aDays").addEventListener("input",e=>{const i=e.target,r
 document.getElementById("aTxt").addEventListener("input",e=>{antWeek();st.ant.txt=e.target.value;save();document.getElementById("aSaved").textContent="Kaydedildi."});
 const aC=document.getElementById("aClr");let aArm=false,aT;
 aC.addEventListener("click",()=>{if(!aArm){aArm=true;aC.textContent="Emin misin? Tekrar dokun";aC.classList.add("danger");aT=setTimeout(()=>{aArm=false;aC.textContent="Haftayı temizle";aC.classList.remove("danger")},3000);return}
-  clearTimeout(aT);aArm=false;aC.classList.remove("danger");aC.textContent="Haftayı temizle";st.ant={wk:ymd(monday()),d:{},txt:"",raw:""};save();aRaw.value="";aMsg.textContent="";renderA()});
+  clearTimeout(aT);aArm=false;aC.classList.remove("danger");aC.textContent="Haftayı temizle";st.ant={wk:ymd(monday()),d:{},txt:"",raw:""};save();aRaw.value="";aMsg.textContent="";renderA();DAYS.forEach(d=>rebuildDay(d.k))});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&st.ant&&st.ant.wk!==ymd(monday()))renderA()});
 renderA();
 // toplu yapıştır → günlere ayır
@@ -678,7 +714,7 @@ function doSplit(){
   const txt=aRaw.value.trim();if(!txt){aMsg.className="tot err";aMsg.textContent="Önce programı kutuya yapıştır.";return}
   const r=splitProgram(txt),keys=Object.keys(r);
   if(!keys.length){aMsg.className="tot err";aMsg.textContent="Metinde gün adı bulamadım. Her satırı bir gün adıyla başlat (Pazartesi, Salı…).";return}
-  antWeek();st.ant.raw=aRaw.value;st.ant.d={};AD.forEach(([k])=>{if(r[k])st.ant.d[k]=r[k]});save();renderA();
+  antWeek();st.ant.raw=aRaw.value;st.ant.d={};AD.forEach(([k])=>{if(r[k])st.ant.d[k]=r[k]});save();renderA();DAYS.forEach(d=>rebuildDay(d.k));
   const names=AD.filter(([k])=>r[k]).map(([,n])=>n);aMsg.className="tot";aMsg.innerHTML=`<b>${keys.length} gün</b> ayrıldı: ${names.join(", ")}. Yanlış olan varsa tablodan düzelt.`;
 }
 document.getElementById("aSplit").addEventListener("click",doSplit);

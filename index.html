@@ -47,6 +47,9 @@ section{display:grid;gap:12px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
 .btn.danger{color:var(--tur);border-color:var(--tur)}
 .counter .btn{margin-top:10px}
+.sync{font-size:.74rem;color:var(--muted);margin-top:8px}
+.sync[data-s=ok]{color:var(--ok)}
+.sync[data-s=err]{color:var(--tur)}
 @media (max-width:620px){.hero{grid-template-columns:1fr}.counter{min-width:0}}
 
 .notice{background:color-mix(in srgb,var(--ink2) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--ink2) 45%,var(--line));border-radius:12px;padding:12px 16px;font-size:.88rem}
@@ -233,6 +236,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
       <div class="bar"><i id="totalBar"></i></div>
       <div class="sub2 num" id="left">270 soru kaldı</div>
       <button type="button" class="btn" id="reset">Yeni haftaya başla</button>
+      <div class="sync" id="sync" data-s="wait">☁ Bağlanıyor…</div>
     </div>
   </header>
 
@@ -434,9 +438,36 @@ document.getElementById("subs").innerHTML=Object.entries(totals).map(([s,v])=>`<
 
 // storage
 const KEY="lgs470-v2";
+let BOOT=null;try{BOOT=localStorage.getItem(KEY)}catch(e){}
 let st={done:{},res:{},den:[],hist:[],okul:[]};
 try{const raw=JSON.parse(localStorage.getItem(KEY)||"null");if(raw&&typeof raw==="object")st={done:raw.done||{},res:raw.res||{},den:raw.den||[],hist:raw.hist||[],okul:raw.okul||[],ant:raw.ant||null}}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+// kayıt: tarayıcı + (claude.ai içinde) hesabına bağlı bulut kaydı
+let cloudRef=null,cloudT=null;
+const pushCloud=()=>{if(!cloudRef)return;clearTimeout(cloudT);cloudT=setTimeout(()=>{cloudRef.set({json:JSON.stringify(st),t:Date.now()}).then(()=>setSync("ok")).catch(()=>setSync("err"))},700)};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}pushCloud()};
+function setSync(s){const el=document.getElementById("sync");if(!el)return;el.dataset.s=s;el.textContent=s==="ok"?"☁ Hesabına kaydedildi":s==="err"?"☁ Kaydedilemedi, bu cihazda duruyor":s==="local"?"Bu cihazda kayıtlı":"☁ Bağlanıyor…"}
+(async()=>{
+  try{
+    const c=window.claude;if(!c||!c.use){setSync("local");return}
+    const [db,user]=await Promise.all([c.use("db"),c.use("user")]);
+    const id=user?await user.id():null;
+    if(!db||!id){setSync("local");return}
+    const ref=db.collection("data/users/"+id).doc("lgs");
+    const snap=await ref.get();
+    const local=JSON.stringify(st);
+    if(snap.exists&&snap.data()&&typeof snap.data().json==="string"){
+      const remote=snap.data().json;
+      cloudRef=ref;
+      if(remote!==BOOT){
+        let g=0;try{g=+sessionStorage.getItem("lgs-sync")||0}catch(e){}
+        try{localStorage.setItem(KEY,remote)}catch(e){}
+        if(g<2){try{sessionStorage.setItem("lgs-sync",g+1)}catch(e){}location.reload();return}
+      }
+      try{sessionStorage.removeItem("lgs-sync")}catch(e){}
+      if(JSON.stringify(st)!==remote)pushCloud();else setSync("ok");
+    }else{cloudRef=ref;await ref.set({json:local,t:Date.now()});setSync("ok")}
+  }catch(e){setSync("local")}
+})();
 const net=(d,y)=>Math.round((d-y/3)*100)/100;
 const nf=x=>String(Math.round(x*100)/100).replace(".",",");
 

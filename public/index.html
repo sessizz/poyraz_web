@@ -69,6 +69,10 @@ section{display:grid;gap:12px}
 .sync{font-size:.74rem;color:var(--muted);margin-top:8px}
 .sync[data-s=ok]{color:var(--ok)}
 .sync[data-s=err]{color:var(--tur)}
+.sync[data-s=srv]{color:var(--ok)}
+.sync[data-s=auth],.sync[data-s=off]{color:var(--ink2)}
+.tok{display:flex;gap:6px;margin-top:8px}
+.tok input{flex:1;min-width:0;font:inherit;font-size:.9rem;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
 @media (max-width:620px){.hero{grid-template-columns:1fr}.counter{min-width:0}}
 
 .notice{background:color-mix(in srgb,var(--ink2) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--ink2) 45%,var(--line));border-radius:12px;padding:12px 16px;font-size:.88rem}
@@ -321,7 +325,8 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
       <div class="sub2 num" id="left">270 soru kaldı</div>
       <div class="ekrow num"><span>⭐ Ek soru <b id="ekc">0</b></span><span>✅ Toplam <b id="totc">0</b></span></div>
       <button type="button" class="btn" id="reset">Yeni haftaya başla</button>
-      <div class="sync" id="sync" data-s="wait">☁ Bağlanıyor…</div>
+      <div class="sync" id="sync" data-s="wait">🔄 Bağlanıyor…</div>
+      <form class="tok" id="tokForm" hidden><input id="tokIn" type="password" autocomplete="current-password" placeholder="Senkron kodu" aria-label="Senkron kodu"><button type="submit" class="btn primary">Bağlan</button></form>
     </div>
   </header>
 
@@ -599,33 +604,59 @@ try{const raw=JSON.parse(localStorage.getItem(KEY)||"null");if(raw&&typeof raw==
 // teslim günü geçen ödevler kendiliğinden silinir
 function purgeOdev(){const t=isoD(d0()),n=(st.odev||[]).length;st.odev=(st.odev||[]).filter(o=>!o.due||o.due>=t);return st.odev.length!==n}
 const purgedAtBoot=purgeOdev();
-// kayıt: tarayıcı + (claude.ai içinde) hesabına bağlı bulut kaydı
-let cloudRef=null,cloudT=null;
-const pushCloud=()=>{if(!cloudRef)return;clearTimeout(cloudT);cloudT=setTimeout(()=>{cloudRef.set({json:JSON.stringify(st),t:Date.now()}).then(()=>setSync("ok")).catch(()=>setSync("err"))},700)};
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}pushCloud()};
-function setSync(s){const el=document.getElementById("sync");if(!el)return;el.dataset.s=s;el.textContent=s==="ok"?"☁ Hesabına kaydedildi":s==="err"?"☁ Kaydedilemedi, bu cihazda duruyor":s==="local"?"Bu cihazda kayıtlı":"☁ Bağlanıyor…"}
-(async()=>{
+// kayıt: tarayıcı + bulut. Claude içinde hesap kaydı, kendi sitende (PWA) sunucudaki SQLite.
+let cloud=null,cloudT=null,dirty=false,reloading=false;
+const pushCloud=()=>{if(!cloud||reloading)return;dirty=true;clearTimeout(cloudT);cloudT=setTimeout(flush,700)};
+async function flush(){if(!cloud||!dirty||reloading)return;dirty=false;setSync("wait");
+  try{await cloud.set(JSON.stringify(st));if(!dirty){try{localStorage.removeItem("lgs-dirty")}catch(e){}}setSync(cloud.ok)}
+  catch(e){dirty=true;setSync(e&&e.auth?"auth":e&&e.conflict?"wait":navigator.onLine===false?"off":"err");if(e&&e.conflict)pullAndReload(e.remote)}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));localStorage.setItem("lgs-dirty","1")}catch(e){}pushCloud()};
+const SYNC_TXT={ok:"☁ Hesabına kaydedildi",srv:"🗄️ Sunucuya kaydedildi",err:"⚠️ Kaydedilemedi, bu cihazda duruyor",off:"📴 Çevrimdışı · bağlanınca gönderilecek",local:"📱 Bu cihazda kayıtlı",auth:"🔑 Senkron kodu gerekli",wait:"🔄 Kaydediliyor…",nosrv:"📱 Bu cihazda kayıtlı (sunucuda kod ayarlı değil)"};
+function setSync(s){const el=document.getElementById("sync");if(!el)return;el.dataset.s=s;el.textContent=SYNC_TXT[s]||SYNC_TXT.wait;const f=document.getElementById("tokForm");if(f)f.hidden=s!=="auth"}
+function pullAndReload(remote){let g=0;try{g=+sessionStorage.getItem("lgs-sync")||0}catch(e){}
+  try{localStorage.setItem(KEY,remote);localStorage.removeItem("lgs-dirty")}catch(e){}if(g<2){reloading=true;dirty=false;clearTimeout(cloudT);try{sessionStorage.setItem("lgs-sync",g+1)}catch(e){}location.reload();return true}return false}
+// sunucu (SQLite) bağlantısı
+const TOK="lgs-token",VKEY="lgs-srv-v";
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+function restAdapter(){
+  const hdr=()=>({"authorization":"Bearer "+(lsGet(TOK)||""),"content-type":"application/json"});
+  const fail=async r=>{const e=new Error("http "+r.status);if(r.status===401)e.auth=true;if(r.status===409){e.conflict=true;const j=await r.json().catch(()=>({}));e.remote=j.json;if(j.v)lsSet(VKEY,j.v)}if(r.status===503)e.nosrv=true;throw e};
+  return {ok:"srv",
+    async get(){const r=await fetch("/api/state",{headers:hdr(),cache:"no-store"});if(r.status===404){lsSet(VKEY,0);return null}if(!r.ok)await fail(r);const j=await r.json();return {json:j.json,v:j.v}},
+    async set(json){const r=await fetch("/api/state",{method:"PUT",headers:hdr(),body:JSON.stringify({json,base:+(lsGet(VKEY)||0)})});if(!r.ok)await fail(r);const j=await r.json();lsSet(VKEY,j.v)}};
+}
+async function claudeAdapter(){const c=window.claude;if(!c||!c.use)return null;
+  const [db,user]=await Promise.all([c.use("db"),c.use("user")]);const id=user?await user.id():null;if(!db||!id)return null;
+  const ref=db.collection("data/users/"+id).doc("lgs");
+  return {ok:"ok",async get(){const s=await ref.get();const d=s.exists&&s.data();return d&&typeof d.json==="string"?{json:d.json}:null},async set(json){await ref.set({json,t:Date.now()})}};
+}
+async function connect(){
   try{
-    const c=window.claude;if(!c||!c.use){setSync("local");return}
-    const [db,user]=await Promise.all([c.use("db"),c.use("user")]);
-    const id=user?await user.id():null;
-    if(!db||!id){setSync("local");return}
-    const ref=db.collection("data/users/"+id).doc("lgs");
-    const snap=await ref.get();
-    const local=JSON.stringify(st);
-    if(snap.exists&&snap.data()&&typeof snap.data().json==="string"){
-      const remote=snap.data().json;
-      cloudRef=ref;
-      if(remote!==BOOT){
-        let g=0;try{g=+sessionStorage.getItem("lgs-sync")||0}catch(e){}
-        try{localStorage.setItem(KEY,remote)}catch(e){}
-        if(g<2){try{sessionStorage.setItem("lgs-sync",g+1)}catch(e){}location.reload();return}
+    let ad=await claudeAdapter();
+    if(!ad&&/^https?:$/.test(location.protocol)&&!window.claude){if(!lsGet(TOK)){const h=await fetch("/api/health",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);if(!h){setSync("local");return}if(!h.token){setSync("nosrv");return}setSync("auth");return}ad=restAdapter()}
+    if(!ad){setSync("local");return}
+    const r=await ad.get();
+    if(r&&typeof r.json==="string"){
+      const knownV=+(lsGet(VKEY)||0),localDirty=lsGet("lgs-dirty")==="1";
+      cloud=ad;
+      if(r.json!==BOOT){
+        // bu cihazda gönderilmemiş değişiklik var ve sunucu o arada değişmediyse: bu cihaz kazanır
+        if(localDirty&&(ad.ok!=="srv"||+r.v===knownV)){if(ad.ok==="srv")lsSet(VKEY,r.v);pushCloud();return}
+        if(ad.ok==="srv")lsSet(VKEY,r.v);
+        try{localStorage.removeItem("lgs-dirty")}catch(e){}
+        if(pullAndReload(r.json))return;
       }
+      if(ad.ok==="srv")lsSet(VKEY,r.v);
       try{sessionStorage.removeItem("lgs-sync")}catch(e){}
-      if(JSON.stringify(st)!==remote)pushCloud();else setSync("ok");
-    }else{cloudRef=ref;await ref.set({json:local,t:Date.now()});setSync("ok")}
-  }catch(e){setSync("local")}
-})();
+      if(JSON.stringify(st)!==r.json)pushCloud();else setSync(ad.ok);
+    }else{cloud=ad;dirty=true;await flush()}
+  }catch(e){setSync(e&&e.auth?"auth":e&&e.nosrv?"nosrv":navigator.onLine===false?"off":"err")}
+}
+connect();
+addEventListener("online",()=>{if(cloud&&dirty)flush();else if(!cloud)connect()});
+// uygulamaya geri dönünce: başka cihazdan gelen değişikliği al, bekleyeni gönder
+document.addEventListener("visibilitychange",async()=>{if(document.hidden){if(cloud&&dirty){clearTimeout(cloudT);flush()}return}
+  if(!cloud||cloud.ok!=="srv")return;try{const r=await cloud.get();if(r&&+r.v>+(lsGet(VKEY)||0)&&!dirty){lsSet(VKEY,r.v);try{sessionStorage.removeItem("lgs-sync")}catch(e){}pullAndReload(r.json)}}catch(e){}});
 const net=(d,y)=>Math.round((d-y/3)*100)/100;
 const nf=x=>String(Math.round(x*100)/100).replace(".",",");
 
@@ -919,6 +950,7 @@ function renderBanner(dd){
    `<div class="tb" style="--c:var(--ink2)"><span class="t">📚 Bugünkü ödev</span><span class="v num">${pg?pg+" sayfa":activeOdev().length?`📌 ${activeOdev().length} ödev açık`:"Ödev yok 🎉"}</span><span class="s">${hw.length?hw.map(x=>`${SUB[x.o.s].i} ${SUB[x.o.s].n}: ${x.n} sayfa`).join(" · "):activeOdev().length?activeOdev().map(o=>`${SUB[o.s].i} ${SUB[o.s].n} · ${trD(o.due)}`).join(" · "):"Yeni ödevi 📚 Ödev sekmesinden ekle"}</span></div>`+
    (urgent.length?`<div class="tb" style="--c:var(--tur)"><span class="t">🔔 Teslimi yaklaşan</span><span class="v">${urgent.map(([o,p])=>`${SUB[o.s].i} ${SUB[o.s].n} · ${p.days<=0?"bugün":"yarın"}`).join("<br>")}</span><span class="s">🔔 Bugün bitir, çantana koy</span></div>`:"");
 }
+document.getElementById("tokForm").addEventListener("submit",e=>{e.preventDefault();const v=document.getElementById("tokIn").value.trim();if(!v)return;lsSet(TOK,v);document.getElementById("tokIn").value="";setSync("wait");connect()});
 if(purgedAtBoot)save();
 renderHW();
 render();renderH();renderD();renderO();

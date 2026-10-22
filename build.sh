@@ -21,4 +21,4 @@ cat <<'HEAD'
 HEAD
 cat "$1"
 printf '\n</html>\n'
-} > index.html
+} > public/index.html

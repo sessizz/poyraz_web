@@ -154,6 +154,8 @@ tr.solved td{opacity:.6}
 .sub .n small{font-size:.85rem;color:var(--muted);font-weight:600}
 .sub .m{font-size:.76rem;color:var(--muted)}
 .sub .bar i{background:var(--c)}
+.sub.otot{grid-column:1/-1;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.sub.otot .n{font-size:2rem}
 .rules{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--muted);font-size:.9rem}
 .rules b{color:var(--ink)}
 /* per-task results */
@@ -707,8 +709,10 @@ function renderO(){
   document.getElementById("obody").innerHTML=st.okul.map((o,i)=>`<tr><td>${trDate(o.t)}</td><td>${chip(o.s)}</td><td>${esc(o.k||"—")}</td><td class="n">${o.d+o.y+o.b}</td><td class="n">${o.d}</td><td class="n">${o.y}</td><td class="n">${o.b}</td><td class="n"><b>${nf(net(o.d,o.y))}</b></td><td><button class="x" type="button" aria-label="Sil" data-ox="${i}">×</button></td></tr>`).join("");
   document.getElementById("oempty").hidden=st.okul.length>0;
   const t={};st.okul.forEach(o=>{const x=t[o.s]||(t[o.s]={d:0,y:0,b:0});x.d+=o.d;x.y+=o.y;x.b+=o.b});
-  document.getElementById("osubs").innerHTML=st.okul.length?OD.filter(s=>t[s]).map(s=>{const x=t[s],q=x.d+x.y+x.b,p=q?Math.round(x.d/q*100):0;
-    return `<div class="sub" style="--c:var(${SUB[s].c})"><span class="lbl">${SUB[s].n}</span><span class="n num">${q}<small> soru</small></span><div class="bar"><i style="width:${p}%"></i></div><span class="dy num">D <b>${x.d}</b> · Y <b>${x.y}</b> · B <b>${x.b}</b> · Net <b>${nf(net(x.d,x.y))}</b></span><span class="m num">Başarı %${p}</span></div>`}).join(""):"";
+  const T=Object.values(t).reduce((a,x)=>({d:a.d+x.d,y:a.y+x.y,b:a.b+x.b}),{d:0,y:0,b:0}),TQ=T.d+T.y+T.b,TP=TQ?Math.round(T.d/TQ*100):0;
+  const tot=st.okul.length?`<div class="sub otot" style="--c:var(--accent)"><span class="lbl">🏫 Tüm dersler · toplam</span><span class="n num">${TQ}<small> soru · ${st.okul.length} kayıt</small></span><div class="bar"><i style="width:${TP}%"></i></div><span class="dy num">✅ D <b>${T.d}</b> · ❌ Y <b>${T.y}</b> · ⬜ B <b>${T.b}</b> · Net <b>${nf(net(T.d,T.y))}</b></span><span class="m num">Başarı %${TP}</span></div>`:"";
+  document.getElementById("osubs").innerHTML=tot+(st.okul.length?OD.filter(s=>t[s]).map(s=>{const x=t[s],q=x.d+x.y+x.b,p=q?Math.round(x.d/q*100):0;
+    return `<div class="sub" style="--c:var(${SUB[s].c})"><span class="lbl">${SUB[s].n}</span><span class="n num">${q}<small> soru</small></span><div class="bar"><i style="width:${p}%"></i></div><span class="dy num">D <b>${x.d}</b> · Y <b>${x.y}</b> · B <b>${x.b}</b> · Net <b>${nf(net(x.d,x.y))}</b></span><span class="m num">Başarı %${p}</span></div>`}).join(""):"");
 }
 document.getElementById("obody").addEventListener("click",e=>{const t=e.target;if(t.dataset.ox!==undefined){st.okul.splice(+t.dataset.ox,1);save();renderO()}});
 // tabs

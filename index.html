@@ -156,6 +156,9 @@ tr.solved td{opacity:.6}
 .sub .bar i{background:var(--c)}
 .sub.otot{grid-column:1/-1;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
 .sub.otot .n{font-size:2rem}
+.otbl{min-width:520px}
+.otbl small{color:var(--muted)}
+tr.otoday td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
 .rules{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--muted);font-size:.9rem}
 .rules b{color:var(--ink)}
 /* per-task results */
@@ -368,6 +371,10 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     </form>
     <span class="out num" id="oPrev" style="font-size:.82rem;color:var(--muted)"></span>
     <div class="subs" id="osubs"></div>
+    <div id="oday" hidden>
+      <h3 style="font-size:1.05rem;margin-bottom:8px">📆 Günlük toplam</h3>
+      <div class="tbl-scroll"><table class="otbl"><thead><tr><th>Tarih</th><th>Dersler</th><th class="n">Soru</th><th class="n">✅ D</th><th class="n">❌ Y</th><th class="n">⬜ B</th><th class="n">Net</th><th class="n">Başarı</th></tr></thead><tbody id="odbody"></tbody></table></div>
+    </div>
     <div class="tbl-scroll">
       <table>
         <thead><tr><th>Tarih</th><th>Ders</th><th>Konu</th><th class="n">Soru</th><th class="n">Doğru</th><th class="n">Yanlış</th><th class="n">Boş</th><th class="n">Net</th><th></th></tr></thead>
@@ -730,6 +737,11 @@ document.getElementById("oform").addEventListener("submit",e=>{
 function renderO(){
   document.getElementById("obody").innerHTML=st.okul.map((o,i)=>`<tr><td>${trDate(o.t)}</td><td>${chip(o.s)}</td><td>${esc(o.k||"—")}</td><td class="n">${o.d+o.y+o.b}</td><td class="n">${o.d}</td><td class="n">${o.y}</td><td class="n">${o.b}</td><td class="n"><b>${nf(net(o.d,o.y))}</b></td><td><button class="x" type="button" aria-label="Sil" data-ox="${i}">×</button></td></tr>`).join("");
   document.getElementById("oempty").hidden=st.okul.length>0;
+  { const g={};st.okul.forEach(o=>{const x=g[o.t]||(g[o.t]={d:0,y:0,b:0,s:new Set()});x.d+=o.d;x.y+=o.y;x.b+=o.b;x.s.add(o.s)});
+    const td=isoD(d0()),GN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
+    document.getElementById("oday").hidden=!st.okul.length;
+    document.getElementById("odbody").innerHTML=Object.keys(g).sort().reverse().map(t=>{const x=g[t],q=x.d+x.y+x.b,p=q?Math.round(x.d/q*100):0,dt=new Date(t+"T00:00:00");
+      return `<tr class="${t===td?"otoday":""}"><td class="num"><b>${t===td?"📍 Bugün":trDate(t)}</b> <small>${GN[dt.getDay()]||""}</small></td><td>${[...x.s].map(s=>SUB[s].i).join(" ")}</td><td class="n"><b>${q}</b></td><td class="n">${x.d}</td><td class="n">${x.y}</td><td class="n">${x.b}</td><td class="n"><b>${nf(net(x.d,x.y))}</b></td><td class="n">%${p}</td></tr>`}).join(""); }
   const t={};st.okul.forEach(o=>{const x=t[o.s]||(t[o.s]={d:0,y:0,b:0});x.d+=o.d;x.y+=o.y;x.b+=o.b});
   const T=Object.values(t).reduce((a,x)=>({d:a.d+x.d,y:a.y+x.y,b:a.b+x.b}),{d:0,y:0,b:0}),TQ=T.d+T.y+T.b,TP=TQ?Math.round(T.d/TQ*100):0;
   const tot=st.okul.length?`<div class="sub otot" style="--c:var(--accent)"><span class="lbl">🏫 Tüm dersler · toplam</span><span class="n num">${TQ}<small> soru · ${st.okul.length} kayıt</small></span><div class="bar"><i style="width:${TP}%"></i></div><span class="dy num">✅ D <b>${T.d}</b> · ❌ Y <b>${T.y}</b> · ⬜ B <b>${T.b}</b> · Net <b>${nf(net(T.d,T.y))}</b></span><span class="m num">Başarı %${TP}</span></div>`:"";

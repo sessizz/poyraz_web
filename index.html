@@ -239,46 +239,104 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .anote{display:grid;gap:4px;font-size:.75rem;color:var(--muted);font-weight:600}
 .anote textarea{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;resize:vertical}
 .day-h .tr{font-size:.78rem;color:var(--ink2);font-weight:600}
+/* ikon & vurgu */
+.ti{margin-right:6px}
+.tbadge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:99px;background:var(--tur);color:#fff;font-size:.7rem;font-weight:800}
+.hi{margin-right:8px}
+.goal{background:linear-gradient(90deg,var(--accent),var(--ing));-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar i.full{background:linear-gradient(90deg,var(--fen),var(--din))}
+.today-banner{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.tb{border-radius:14px;padding:12px 16px;display:grid;gap:4px;border:1px solid var(--line);background:var(--surface);border-left:5px solid var(--c)}
+.tb .t{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--c)}
+.tb .v{font-family:var(--f-display);font-weight:800;font-size:1.15rem}
+.tb .s{font-size:.82rem;color:var(--muted)}
+.day.today{border:2px solid var(--accent);box-shadow:0 6px 24px color-mix(in srgb,var(--accent) 22%,transparent)}
+.dcell.today{border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:var(--accent);color:var(--surface)}
+.badge.ok{background:var(--ok)}
+.row.hw{border-left-color:var(--ink2);background:color-mix(in srgb,var(--ink2) 9%,transparent)}
+.row.hw .d b{color:var(--ink)}
+.warn{color:var(--tur);font-weight:600}
+/* ödev */
+.hprev{grid-column:span 2;font-size:.84rem;color:var(--muted);align-self:center}
+.hprev b{color:var(--ink)}
+.hlist{display:grid;gap:12px}
+.hw-card{border:1px solid var(--line);border-left:5px solid var(--u);border-radius:14px;padding:14px;display:grid;gap:10px;background:var(--surface)}
+.hw-card.fin{opacity:.6;--u:var(--ok)}
+.hw-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.hw-top .nm{font-weight:600;font-size:1rem;min-width:0}
+.due{display:inline-flex;gap:4px;align-items:center;font-size:.76rem;font-weight:700;padding:3px 10px;border-radius:99px;color:var(--u);background:color-mix(in srgb,var(--u) 14%,transparent);white-space:nowrap}
+.hw-big{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline}
+.hw-big .n{font-family:var(--f-display);font-weight:800;font-size:1.6rem;color:var(--u)}
+.hw-big .n small{font-size:.85rem;color:var(--muted);font-weight:600}
+.hw-big .m{font-size:.85rem;color:var(--muted)}
+.hw-big .m b{color:var(--ink)}
+.hw-card .bar i{background:var(--u)}
+.hw-plan{display:flex;flex-wrap:wrap;gap:6px}
+.hw-plan span{font-size:.76rem;border:1px solid var(--line);border-radius:8px;padding:3px 8px;color:var(--muted)}
+.hw-plan span.td{border-color:var(--u);color:var(--ink);font-weight:600}
+.hw-act{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hw-act input{font:inherit;font-size:.9rem;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:80px}
+@media (max-width:620px){.hprev{grid-column:1/-1}}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
 
-<div class="wrap">
+<div class="wrap" lang="tr">
   <header class="hero">
     <div>
       <div class="lbl">8. sınıf · LGS hazırlık paneli</div>
-      <h1>Haftada 270 soru, hedef <b>470+</b></h1>
+      <h1>Haftada 270 soru, hedef <b class="goal">🚀 470+</b></h1>
       <p>Program yalnızca soru çözümünden oluşuyor. Süreler soru başına dakikadan hesaplandı: Matematik ve Fen 2 dk, Türkçe 1,5 dk, İngilizce, İnkılap ve Din 1 dk. Antrenman günü 16.00–16.45, antrenman olmayan gün 18.30'dan itibaren 40 soru (fazlası ek soru olarak ayrı sayılır). Hafta sonu her gün 100 soru molalarla.</p>
     </div>
     <div class="counter">
-      <div class="lbl">Temel hedef · bu hafta</div>
+      <div class="lbl">🎯 Temel hedef · bu hafta</div>
       <div class="big num"><span id="done">0</span><small> / 270</small></div>
       <div class="bar"><i id="totalBar"></i></div>
       <div class="sub2 num" id="left">270 soru kaldı</div>
-      <div class="ekrow num"><span>Ek soru <b id="ekc">0</b></span><span>Toplam çözülen <b id="totc">0</b></span></div>
+      <div class="ekrow num"><span>⭐ Ek soru <b id="ekc">0</b></span><span>✅ Toplam <b id="totc">0</b></span></div>
       <button type="button" class="btn" id="reset">Yeni haftaya başla</button>
       <div class="sync" id="sync" data-s="wait">☁ Bağlanıyor…</div>
     </div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Bölümler">
-    <button type="button" role="tab" data-go="program">Program</button>
-    <button type="button" role="tab" data-go="okul">Okul</button>
-    <button type="button" role="tab" data-go="deneme">Deneme</button>
-    <button type="button" role="tab" data-go="sayac">Sayaç</button>
-    <button type="button" role="tab" data-go="antrenman">Antrenman</button>
+    <button type="button" role="tab" data-go="program"><span class="ti">📅</span>Program</button>
+    <button type="button" role="tab" data-go="odev"><span class="ti">📚</span>Ödev<span class="tbadge" id="odevBadge" hidden></span></button>
+    <button type="button" role="tab" data-go="okul"><span class="ti">🏫</span>Okul</button>
+    <button type="button" role="tab" data-go="deneme"><span class="ti">📝</span>Deneme</button>
+    <button type="button" role="tab" data-go="sayac"><span class="ti">⏱️</span>Sayaç</button>
+    <button type="button" role="tab" data-go="antrenman"><span class="ti">🏐</span>Antrenman</button>
   </nav>
+
+  <div data-tab="program" class="today-banner" id="todayBanner"></div>
 
   <div data-tab="program" class="legend" id="legend"></div>
 
   <section data-tab="program">
-    <h2>Haftaya bakış</h2>
+    <h2><span class="hi">🗓️</span>Haftaya bakış</h2>
     <div class="strip-scroll"><div class="strip" id="strip"></div></div>
   </section>
 
   <section data-tab="program" class="days" id="days"></section>
 
+  <section data-tab="odev" class="panel" id="odev">
+    <h2><span class="hi">📚</span>Ödevlerim</h2>
+    <p class="lbl" style="margin:0;text-transform:none;letter-spacing:0;font-weight:400">Ödevi ve teslim tarihini gir. Kalan sayfaları teslim gününe kadar eşit böler, günlük hedefi gösterir ve Program'daki gün kartlarına ekler.</p>
+    <form class="form" id="hform">
+      <label for="hDers">Ders<select id="hDers"></select></label>
+      <label for="hAd" class="wide">Ödev<input id="hAd" placeholder="Örn. Matematik soru bankası, üslü ifadeler" required></label>
+      <label for="hDue">Teslim tarihi<input type="date" id="hDue" required></label>
+      <label for="hTop">Toplam sayfa<input type="number" inputmode="numeric" min="1" id="hTop" required></label>
+      <label for="hMpp">1 sayfa ≈ dk<input type="number" inputmode="numeric" min="1" max="60" id="hMpp" value="5"></label>
+      <span class="hprev num" id="hPrev"></span>
+      <button type="submit" class="btn primary">➕ Ödev ekle</button>
+    </form>
+    <div class="hlist" id="hList"></div>
+    <div class="empty" id="hEmpty">Henüz ödev yok. Yukarıdan ilk ödevini ekle.</div>
+  </section>
+
   <section data-tab="okul" class="panel" id="okul">
-    <h2>Okulda çözdüklerim</h2>
+    <h2><span class="hi">🏫</span>Okulda çözdüklerim</h2>
     <p class="lbl" style="margin:0;text-transform:none;letter-spacing:0;font-weight:400">Programın dışında, okulda çözdüğün sorular. Haftalık sayaca eklenmez, ayrı toplanır.</p>
     <form class="form" id="oform">
       <label for="oTarih">Tarih<input type="date" id="oTarih" required></label>
@@ -301,7 +359,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   </section>
 
   <section data-tab="deneme" class="panel" id="deneme">
-    <h2>Deneme sonuçları</h2>
+    <h2><span class="hi">📝</span>Deneme sonuçları</h2>
     <p class="lbl" style="margin:0;text-transform:none;letter-spacing:0;font-weight:400">LGS düzeni: 90 soru. Net = Doğru − Yanlış ÷ 3. Ağırlıklı net, LGS katsayılarıyla hesaplanır (Türkçe, Matematik, Fen ×4; diğerleri ×1; en fazla 270).</p>
     <form class="dform" id="dform">
       <div class="dtop">
@@ -325,7 +383,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   </section>
 
   <section data-tab="program">
-    <h2>Ders bazında hafta</h2>
+    <h2><span class="hi">📊</span>Ders bazında hafta</h2>
     <div class="subs" id="subs"></div>
     <div class="panel">
       <h3 style="font-size:1.05rem">Geçmiş haftalar</h3>
@@ -335,7 +393,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   </section>
 
   <section data-tab="program" class="panel">
-    <h2>Dinlenme ve uyku</h2>
+    <h2><span class="hi">😴</span>Dinlenme ve uyku</h2>
     <ul class="rules">
       <li><b>Hafta içi:</b> sorular bitince masa kapanır, 16.45'i geçme. Kalan dakikalar boş zaman.</li>
       <li><b>Uyku:</b> antrenman günlerinde en geç 22.30'da yatakta ol.</li>
@@ -346,7 +404,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
   <section data-tab="antrenman" class="panel" id="antrenman">
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline">
-      <h2>Antrenman programı</h2>
+      <h2><span class="hi">🏐</span>Antrenman programı</h2>
       <span class="lbl num" id="aWeek"></span>
     </div>
     <p class="lbl" style="margin:0;text-transform:none;letter-spacing:0;font-weight:400">Haftanın programını tek seferde yapıştır, günlere kendisi ayırır. Pazartesi olunca program kendiliğinden temizlenir.</p>
@@ -364,7 +422,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     <div class="dfoot"><span class="tot" id="aSaved">Yazdıkların otomatik kaydedilir.</span><button type="button" class="btn" id="aClr">Haftayı temizle</button></div>
   </section>
   <section data-tab="sayac" class="panel" id="sayac">
-    <h2>Sayaç</h2>
+    <h2><span class="hi">⏱️</span>Sayaç</h2>
     <div class="tform">
       <label for="tDers">Ders<select id="tDers"></select></label>
       <label for="tDk">Soru sayısı<input type="number" inputmode="numeric" min="1" max="150" id="tDk" value="10"></label>
@@ -385,8 +443,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 <script>
 const SUB={
-  mat:{n:"Matematik",c:"--mat",r:2}, tur:{n:"Türkçe",c:"--tur",r:1.5}, fen:{n:"Fen Bilimleri",c:"--fen",r:2},
-  ing:{n:"İngilizce",c:"--ing",r:1}, ink:{n:"İnkılap Tarihi",c:"--ink2",r:1}, din:{n:"Din Kültürü",c:"--din",r:1}, rest:{n:"",c:"--rest",r:0}
+  mat:{n:"Matematik",c:"--mat",r:2,i:"➗"}, tur:{n:"Türkçe",c:"--tur",r:1.5,i:"📖"}, fen:{n:"Fen Bilimleri",c:"--fen",r:2,i:"🔬"},
+  ing:{n:"İngilizce",c:"--ing",r:1,i:"🔤"}, ink:{n:"İnkılap Tarihi",c:"--ink2",r:1,i:"🏛️"}, din:{n:"Din Kültürü",c:"--din",r:1,i:"🕊️"}, rest:{n:"",c:"--rest",r:0,i:"☕"}
 };
 // Block: [subject, kind, value, text]. kind "q" → value = questions, duration = q × rate. Others → value = minutes.
 // kinds: q (questions), m (method: tekrar/analiz), r (rest/meal/free)
@@ -428,7 +486,22 @@ const WEEK=DAYS.reduce((a,d)=>a+d.b.filter(x=>x[1]==="q").reduce((s,x)=>s+x[2],0
 const toMin=t=>{const[h,m]=t.split(".").map(Number);return h*60+m};
 const fmt=x=>{const h=Math.floor(x/60),m=Math.floor(x%60),s=Math.round((x%1)*60);return `${String(h).padStart(2,"0")}.${String(m).padStart(2,"0")}${s?":"+String(s).padStart(2,"0"):""}`};
 const dk=x=>`${String(x).replace(".",",")} dk`;
-const chip=s=>`<span class="chip" style="--c:var(${SUB[s].c})">${SUB[s].n}</span>`;
+const chip=s=>`<span class="chip" style="--c:var(${SUB[s].c})">${SUB[s].i} ${SUB[s].n}</span>`;
+const DOW=["pzt","sal","car","per","cum","cmt","paz"];
+const d0=()=>{const x=new Date();x.setHours(0,0,0,0);return x};
+const isoD=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const todayK=()=>DOW[(new Date().getDay()+6)%7];
+function dateOfK(k){const m=d0();m.setDate(m.getDate()-((m.getDay()+6)%7)+DOW.indexOf(k));return m}
+// ödev planı: kalan sayfa teslim gününden önceki günlere eşit bölünür
+function odevPlan(o){
+  const t0=d0(),today=isoD(t0),log=o.log||{};let before=0;Object.entries(log).forEach(([d,n])=>{if(d<today)before+=n});
+  const doneToday=log[today]||0,rem0=Math.max(0,o.top-before);
+  const due=new Date(o.due+"T00:00:00"),days=Math.round((due-t0)/864e5),nd=Math.max(1,days),daily=Math.ceil(rem0/nd),plan={};
+  let r=rem0;for(let i=0;i<nd&&r>0;i++){const dt=new Date(t0);dt.setDate(t0.getDate()+i);const n=Math.min(daily,r);plan[isoD(dt)]=n;r-=n}
+  return {days,nd,daily,plan,doneToday,todayLeft:Math.max(0,(plan[today]||0)-doneToday),done:before+doneToday,left:Math.max(0,o.top-before-doneToday)};
+}
+const activeOdev=()=>(st.odev||[]).filter(o=>!o.fin);
+function hwForDate(iso){const out=[];activeOdev().forEach(o=>{const p=odevPlan(o);let n=p.plan[iso]||0;if(iso===isoD(d0()))n=p.todayLeft;if(n>0)out.push({o,n,min:n*(o.mpp||5)})});return out}
 
 const noTr=k=>{try{return !!(st.ant&&st.ant.wk===ymdNow()&&st.ant.d&&st.ant.d[k]&&st.ant.d[k].off)}catch(e){return false}};
 function ymdNow(){const d=new Date(),x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`}
@@ -451,7 +524,7 @@ const strip=document.getElementById("strip"),days=document.getElementById("days"
 const trLabel=k=>{const v=(st.ant&&st.ant.wk===ymdNow()&&st.ant.d&&st.ant.d[k])||{};return v.off?"Antrenman yok":(v.s?`Antrenman ${v.s}${v.e?"–"+v.e:""}`:"")};
 function stripHTML(d){const p=plan(d),per={};p.rows.forEach(r=>{if(r.k==="q")per[r.s]=(per[r.s]||0)+r.v});
   const segs=Object.entries(per).map(([s,v])=>`<span style="--c:var(${SUB[s].c});flex:${v}"></span>`).join("");
-  return `<a class="dcell${p.nt?" nt":""}" id="sc-${d.k}" href="#${d.k}"><span class="dn">${d.n}</span><span class="num"><b>${p.q}</b> soru${p.ek?` <small class="ekt">(${p.base} + ${p.ek} ek)</small>`:""}</span><div class="segs">${segs}</div><span class="meta num">${p.nt?"Antrenman yok · ":""}${fmt(toMin(p.start))}–${fmt(p.end)}</span><span class="pr num" data-dp="${d.k}" data-dq="${p.q}">0/${p.q}</span></a>`}
+  return `<a class="dcell${p.nt?" nt":""}${d.k===todayK()?" today":""}" id="sc-${d.k}" href="#${d.k}"><span class="dn">${d.k===todayK()?"📍 ":""}${d.n}</span><span class="num"><b>${p.q}</b> soru${p.ek?` <small class="ekt">(${p.base} + ${p.ek} ek)</small>`:""}</span><div class="segs">${segs}</div><span class="meta num">${p.nt?"Antrenman yok · ":""}${fmt(toMin(p.start))}–${fmt(p.end)}</span><span class="pr num" data-dp="${d.k}" data-dq="${p.q}">0/${p.q}</span></a>`}
 function dayHTML(d){
   const p=plan(d),per={},pb={};p.rows.forEach(r=>{if(r.k==="q"){per[r.s]=(per[r.s]||0)+r.v}});
   const calc=Object.entries(per).map(([s,v])=>`${SUB[s].n}: <b>${v} × ${String(SUB[s].r).replace(".",",")} = ${dk(v*SUB[s].r)}</b>`).join("");
@@ -467,8 +540,13 @@ function dayHTML(d){
     :d.pre?`<div class="row rest" style="--c:var(--rest)"><span class="time">${d.s}'tan önce</span><div class="task"><span class="d">${d.pre}</span></div><span></span></div>`:"";
   const post=d.post?`<div class="row rest" style="--c:var(--rest)"><span class="time num">${fmt(p.end)} sonrası</span><div class="task"><span class="d">${d.post}</span></div><span></span></div>`:"";
   const tog=d.nb?`<div class="mode" role="group" aria-label="${d.n} antrenman"><button type="button" data-tr="${d.k}" data-v="1" aria-pressed="${!p.nt}">🏐 Antrenman var</button><button type="button" data-tr="${d.k}" data-v="0" aria-pressed="${p.nt}">Antrenman yok</button></div>`:"";
-  const tl=trLabel(d.k);
-  return `<article class="day${p.nt?" nt":""}" id="${d.k}"><div class="day-h"><h3>${d.n}</h3>${tl?`<span class="tr num">${esc(tl)}</span>`:""}<span class="sum num"><b>${fmt(toMin(p.start))}–${fmt(p.end)}</b> · <b>${p.q} soru</b></span>${tog}</div><div class="calc num">${calc}${lim}</div><div class="rows">${pre}${rows}${post}</div></article>`;
+  const tl=trLabel(d.k),dt=dateOfK(d.k),isT=d.k===todayK(),past=dt<d0();
+  const hw=past?[]:hwForDate(isoD(dt));let hwRow="";
+  if(hw.length){const mins=hw.reduce((a,x)=>a+x.min,0),pg=hw.reduce((a,x)=>a+x.n,0),s=p.end,e=s+mins;
+    const limEnd=!p.nt&&d.lim?toMin(d.s)+d.lim:null;
+    const warn=limEnd&&e>limEnd?` <span class="warn">⚠️ ${fmt(limEnd)}'i ${Math.round(e-limEnd)} dk aşıyor, kalanını antrenmandan sonra yap</span>`:"";
+    hwRow=`<div class="row hw" style="--c:var(--ink2)"><span class="time num"><b>${fmt(s)}–${fmt(e)}</b> · ${dk(mins)}</span><div class="task"><span class="chip" style="--c:var(--ink2)">📚 Ödev · ${pg} sayfa</span><span class="d">${hw.map(x=>`${SUB[x.o.s].i} <b>${esc(x.o.ad)}</b>: ${x.n} sayfa`).join(" · ")}${warn}</span></div><span></span></div>`}
+  return `<article class="day${p.nt?" nt":""}${isT?" today":""}" id="${d.k}"><div class="day-h"><h3>${d.n}</h3>${isT?`<span class="badge">📍 Bugün</span>`:""}<span class="badge ok" data-okb="${d.k}" hidden>✅ Tamam</span>${tl?`<span class="tr num">${esc(tl)}</span>`:""}<span class="sum num"><b>${fmt(toMin(p.start))}–${fmt(p.end)}</b> · <b>${p.q} soru</b></span>${tog}</div><div class="calc num">${calc}${lim}</div><div class="rows">${pre}${rows}${hwRow}${post}</div></article>`;
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
@@ -478,8 +556,8 @@ document.getElementById("subs").innerHTML=Object.entries(totals).map(([s,v])=>`<
 // storage
 const KEY="lgs470-v2";
 let BOOT=null;try{BOOT=localStorage.getItem(KEY)}catch(e){}
-let st={done:{},res:{},den:[],hist:[],okul:[]};
-try{const raw=JSON.parse(localStorage.getItem(KEY)||"null");if(raw&&typeof raw==="object")st={done:raw.done||{},res:raw.res||{},den:raw.den||[],hist:raw.hist||[],okul:raw.okul||[],ant:raw.ant||null}}catch(e){}
+let st={done:{},res:{},den:[],hist:[],okul:[],odev:[]};
+try{const raw=JSON.parse(localStorage.getItem(KEY)||"null");if(raw&&typeof raw==="object")st={done:raw.done||{},res:raw.res||{},den:raw.den||[],hist:raw.hist||[],okul:raw.okul||[],ant:raw.ant||null,odev:raw.odev||[]}}catch(e){}
 // kayıt: tarayıcı + (claude.ai içinde) hesabına bağlı bulut kaydı
 let cloudRef=null,cloudT=null;
 const pushCloud=()=>{if(!cloudRef)return;clearTimeout(cloudT);cloudT=setTimeout(()=>{cloudRef.set({json:JSON.stringify(st),t:Date.now()}).then(()=>setSync("ok")).catch(()=>setSync("err"))},700)};
@@ -545,9 +623,12 @@ function render(){
   Object.keys(totals).forEach(s=>{const x=w.s[s]||{d:0,y:0};document.querySelector(`[data-dy="${s}"]`).innerHTML=`D <b>${x.d}</b> · Y <b>${x.y}</b> · Net <b>${nf(net(x.d,x.y))}</b>`});
   document.getElementById("done").textContent=done;
   document.getElementById("totalBar").style.width=(done/WEEK*100)+"%";
-  document.getElementById("left").textContent=done>=WEEK?"Hafta tamamlandı":`${WEEK-done} soru kaldı`;
+  document.getElementById("left").textContent=done>=WEEK?"🏆 Hafta tamamlandı!":`🔥 ${WEEK-done} soru kaldı`;
+  document.getElementById("totalBar").classList.toggle("full",done>=WEEK);
   Object.keys(totals).forEach(s=>{document.querySelector(`[data-sd="${s}"]`).textContent=sd[s]||0;document.querySelector(`[data-sb="${s}"]`).style.width=((sd[s]||0)/totals[s]*100)+"%"});
-  DAYS.forEach(d=>{const el=document.querySelector(`[data-dp="${d.k}"]`);el.textContent=`${dd[d.k]||0}/${el.dataset.dq} ✓`});
+  DAYS.forEach(d=>{const el=document.querySelector(`[data-dp="${d.k}"]`),q=+el.dataset.dq,n=dd[d.k]||0;el.textContent=n>=q?`✅ ${n}/${q}`:`${n}/${q}`;
+    const b=document.querySelector(`[data-okb="${d.k}"]`);if(b)b.hidden=n<q});
+  renderBanner(dd);
   Object.keys(totals).forEach(s=>{document.querySelector(`[data-se="${s}"]`).innerHTML=se[s]?`+ <b>${se[s]}</b> ek soru`:""});
   document.getElementById("ekc").textContent=ek;document.getElementById("totc").textContent=done+ek;
 }
@@ -631,7 +712,7 @@ function renderO(){
 }
 document.getElementById("obody").addEventListener("click",e=>{const t=e.target;if(t.dataset.ox!==undefined){st.okul.splice(+t.dataset.ox,1);save();renderO()}});
 // tabs
-const TABS=["program","okul","deneme","sayac","antrenman"];
+const TABS=["program","odev","okul","deneme","sayac","antrenman"];
 function show(t){if(!TABS.includes(t))t="program";document.querySelectorAll("[data-tab]").forEach(el=>el.hidden=el.dataset.tab!==t);
   document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-selected",b.dataset.go===t));try{localStorage.setItem("lgs-tab",t)}catch(e){}}
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.go)));
@@ -731,6 +812,52 @@ aRaw.addEventListener("paste",()=>setTimeout(doSplit,0));
 let aDeb;aRaw.addEventListener("input",()=>{antWeek();st.ant.raw=aRaw.value;save();clearTimeout(aDeb);aDeb=setTimeout(()=>{if(aRaw.value.trim())doSplit()},800)});
 document.getElementById("aRawClr").addEventListener("click",()=>{aRaw.value="";antWeek();st.ant.raw="";save();aMsg.textContent=""});
 aRaw.value=(st.ant&&st.ant.raw)||"";
+
+// ---- ödev
+const hDers=document.getElementById("hDers");hDers.innerHTML=OD.map(s=>`<option value="${s}">${SUB[s].i} ${SUB[s].n}</option>`).join("");
+const hDue=document.getElementById("hDue");try{const t=d0();t.setDate(t.getDate()+7);hDue.value=isoD(t)}catch(e){}
+const trD=s=>{const p=String(s).split("-");return `${p[2]}.${p[1]}`};
+const GUN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
+function urg(days){return days<0?["--tur","⛔ Gecikti"]:days===0?["--tur","🚨 Bugün teslim"]:days===1?["--tur","⏰ Yarın teslim"]:days<=3?["--ink2",`⏳ ${days} gün kaldı`]:["--fen",`🗓️ ${days} gün kaldı`]}
+function hPrev(){const top=+document.getElementById("hTop").value||0,due=hDue.value,mpp=+document.getElementById("hMpp").value||5,el=document.getElementById("hPrev");
+  if(!top||!due){el.textContent="";return}const p=odevPlan({top,due,mpp,log:{}});el.innerHTML=`Günde <b>${p.daily} sayfa</b> (~${p.daily*mpp} dk) · ${p.nd} gün`}
+["hTop","hDue","hMpp"].forEach(id=>document.getElementById(id).addEventListener("input",hPrev));
+document.getElementById("hform").addEventListener("submit",e=>{e.preventDefault();
+  const top=Math.max(1,Math.floor(+document.getElementById("hTop").value||0)),ad=document.getElementById("hAd").value.trim();if(!ad||!top||!hDue.value)return;
+  st.odev.push({id:Date.now().toString(36),s:hDers.value,ad,top,due:hDue.value,mpp:Math.max(1,+document.getElementById("hMpp").value||5),log:{},fin:false});
+  document.getElementById("hAd").value="";document.getElementById("hTop").value="";hPrev();save();odevChanged()});
+function renderHW(){
+  const list=[...st.odev].sort((a,b)=>(a.fin-b.fin)||String(a.due).localeCompare(String(b.due)));
+  document.getElementById("hEmpty").hidden=list.length>0;
+  const today=isoD(d0());
+  document.getElementById("hList").innerHTML=list.map(o=>{const p=odevPlan(o),[u,ut]=o.fin?["--ok","✅ Bitti"]:urg(p.days),pct=Math.round(p.done/o.top*100);
+    const plan=Object.entries(p.plan).map(([d,n])=>{const dt=new Date(d+"T00:00:00");return `<span class="${d===today?"td":""}">${d===today?"📍 Bugün":GUN[dt.getDay()]+" "+trD(d)}: <b>${n}</b></span>`}).join("");
+    return `<div class="hw-card${o.fin?" fin":""}" style="--u:var(${u})" data-id="${o.id}">
+      <div class="hw-top"><span class="nm">${chip(o.s)} ${esc(o.ad)}</span><span class="due">${ut} · ${trD(o.due)}</span></div>
+      ${o.fin?"":`<div class="hw-big"><span class="n num">${p.todayLeft}<small> sayfa bugün</small></span><span class="m num">Günde <b>${p.daily} sayfa</b> · ~<b>${p.daily*(o.mpp||5)} dk</b></span><span class="m num">Kalan <b>${p.left}</b> / ${o.top} sayfa</span></div>`}
+      <div class="bar"><i style="width:${o.fin?100:pct}%"></i></div>
+      ${o.fin||!plan?"":`<div class="hw-plan num">${plan}</div>`}
+      <div class="hw-act">${o.fin?`<button type="button" class="btn" data-a="undo">↩︎ Geri al</button>`:`<label class="num" style="font-size:.8rem;color:var(--muted)">Bugün yaptığım <input type="number" inputmode="numeric" min="0" data-a="pg" value="${p.doneToday||""}" aria-label="Bugün yapılan sayfa"> sayfa</label><button type="button" class="btn" data-a="fin">✅ Bitti</button>`}<button class="x" type="button" data-a="del" aria-label="Sil">🗑️</button></div>
+    </div>`}).join("");
+  const n=activeOdev().filter(o=>{const p=odevPlan(o);return p.todayLeft>0||p.days<=1}).length,bd=document.getElementById("odevBadge");bd.hidden=!n;bd.textContent=n;
+}
+const hList=document.getElementById("hList");
+hList.addEventListener("change",e=>{const i=e.target;if(i.dataset.a!=="pg")return;const o=st.odev.find(x=>x.id===i.closest(".hw-card").dataset.id);if(!o)return;
+  o.log=o.log||{};const v=Math.max(0,Math.floor(+i.value||0));if(v)o.log[isoD(d0())]=v;else delete o.log[isoD(d0())];
+  if(odevPlan(o).left<=0)o.fin=true;save();odevChanged()});
+hList.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b||b.dataset.a==="pg")return;const card=b.closest(".hw-card"),o=st.odev.find(x=>x.id===card.dataset.id);if(!o)return;
+  if(b.dataset.a==="fin")o.fin=true;else if(b.dataset.a==="undo")o.fin=false;
+  else if(b.dataset.a==="del"){if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="Sil?";setTimeout(()=>{b.dataset.arm="";b.textContent="🗑️"},2500);return}st.odev=st.odev.filter(x=>x!==o)}
+  save();odevChanged()});
+function odevChanged(){renderHW();DAYS.forEach(d=>rebuildDay(d.k))}
+function renderBanner(dd){
+  const k=todayK(),d=DAYS.find(x=>x.k===k),p=plan(d),n=(dd||{})[k]||0,hw=hwForDate(isoD(d0())),pg=hw.reduce((a,x)=>a+x.n,0),urgent=activeOdev().map(o=>[o,odevPlan(o)]).filter(([,p])=>p.days<=1);
+  document.getElementById("todayBanner").innerHTML=
+   `<a class="tb" style="--c:var(--accent);text-decoration:none;color:inherit" href="#${k}"><span class="t">📍 Bugün · ${d.n}</span><span class="v num">${n>=p.q?"✅ ":""}${n} / ${p.q} soru</span><span class="s num">${p.nt?"Antrenman yok · ":""}${fmt(toMin(p.start))}–${fmt(p.end)}</span></a>`+
+   `<div class="tb" style="--c:var(--ink2)"><span class="t">📚 Bugünkü ödev</span><span class="v num">${pg?pg+" sayfa":"Ödev yok 🎉"}</span><span class="s">${hw.length?hw.map(x=>`${SUB[x.o.s].i} ${esc(x.o.ad)}: ${x.n}`).join(" · "):"Yeni ödevi 📚 Ödev sekmesinden ekle"}</span></div>`+
+   (urgent.length?`<div class="tb" style="--c:var(--tur)"><span class="t">🚨 Teslimi yaklaşan</span><span class="v">${urgent.map(([o,p])=>`${esc(o.ad)} · ${p.days<=0?"bugün":"yarın"}`).join("<br>")}</span><span class="s">Kalan sayfaları bugün bitir</span></div>`:"");
+}
+renderHW();
 render();renderH();renderD();renderO();
 </script>
 
